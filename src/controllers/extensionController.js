@@ -21,61 +21,89 @@ let getWebhook = (req, res) => {
     }
 };
 
-//  curl -i -X POST -H 'Content-Type: application/json' -d '{"object":"page","entry":[{"id":43674671559,"time":1460620433256,"messaging":[{"sender":{"id":123456789},"recipient":{"id":987654321},"timestamp":1460620433123,"message":{"mid":"mid.1460620432888:f8e3412003d2d1cd93","seq":12604,"text":"Testing Chat Bot .."}}]}]}' https://2413-49-228-107-40.ap.ngrok.io/webhook
-let postWebhook = (req, res) => {
-    // Parse the request body from the POST
-    let body = req.body;
+// get leads
+let postWebhook = async (req, res) => {
+    const leadgen = req.body.entry[0].changes[0].value;
+    // Extract lead data from the webhook event
+    // Store lead data in your own system
+    res.status(200).send('EVENT_RECEIVED');
 
-    if (body.entry[0].messaging[0].message != undefined) {
-        // console.log("body", body.entry[0].messaging[0].message);
-        if (body.object === "page") {
+    const ExtensionInstaller = require('../../../Facebook_Leads/installer.js');
+    const newExtensionInstaller = new ExtensionInstaller()
 
-            // Iterate over each entry - there may be multiple if batched
-            body.entry.forEach(function (entry) {
-                let webhook_event = entry.messaging[0];
-
-                /// Gets the body of the webhook event
-                let sender_psid = webhook_event.sender.id;
-                // console.log('Sender PSID: ' + sender_psid);                
-                
-                const ExtensionInstaller = require('../../../FacebookMessenger/index.js');
-                const newExtensionInstaller = new ExtensionInstaller()
-
-                newExtensionInstaller.initialization({
-                    access_token: 'EAAHFfNt92vYBAGxRzMsleZCmSp60DvvHepXt302KuiHZAFCcUZCnc6kcDDpZAXAeZB7pmNZCmy5ZCWNE35TgZBOmTkI9XsgHisZBjOnLoGAFCsScgSxGk0s0IkE10pF0JDzemAMqSsRls8kH1c8SOrMmou2hKiwLPiyfFeUOEnpANzFzKA8SrN9pcbohduZBLAizkZD',
-                    pageId: '109025378769446'
-                })
-
-                // Check if the event is a message or postback and
-                // pass the event to the appropriate handler function
-                if (webhook_event.message) {
-                    // handleMessage(sender_psid, webhook_event.message);
-                    callExtensionGetMessage(webhook_event);
-                } else if (webhook_event.postback) {
-                    handlePostback(sender_psid, webhook_event.postback);
-                }
-
-
-            });
-            // Return a '200 OK' response to all events
-        }
-        res.status(200).send("EVENT_RECEIVED");
-    } else {
-        // Return a '404 Not Found' if event is not from a page subscription
-        res.sendStatus(404);
-    }
-};
-
-function callExtensionGetMessage(webhook_event) {
-    const Extension = require('../../../FacebookMessenger/index.js');
-    const newExtension = new Extension();
-
-    newExtension.initialization({
-        access_token: 'EAAHFfNt92vYBAGxRzMsleZCmSp60DvvHepXt302KuiHZAFCcUZCnc6kcDDpZAXAeZB7pmNZCmy5ZCWNE35TgZBOmTkI9XsgHisZBjOnLoGAFCsScgSxGk0s0IkE10pF0JDzemAMqSsRls8kH1c8SOrMmou2hKiwLPiyfFeUOEnpANzFzKA8SrN9pcbohduZBLAizkZD',
-        pageId: '109025378769446'
+    await newExtensionInstaller.initialization({
+        PAGE_ACCESS_TOKEN: process.env.PAGE_ACCESS_TOKEN,
+        page_id: '117040291307229'
     })
 
-    newExtension.execute({
+    const Extension = require('../../../Facebook_Leads/index.js');
+    const newExtension = new Extension();
+
+    await newExtension.initialization({
+        PAGE_ACCESS_TOKEN: process.env.PAGE_ACCESS_TOKEN,
+        page_id: '117040291307229'
+    })
+    await newExtension.execute({
+        function_name: "getLeadsData",
+        execute_data: leadgen
+    });
+};
+
+// Facebook Messenger
+// let postWebhook = (req, res) => {
+//     // Parse the request body from the POST
+//     let body = req.body;
+
+//     if (body.entry[0].messaging[0].message != undefined) {
+//         // console.log("body", body.entry[0].messaging[0].message);
+//         if (body.object === "page") {
+
+//             // Iterate over each entry - there may be multiple if batched
+//             body.entry.forEach(function (entry) {
+//                 let webhook_event = entry.messaging[0];
+
+//                 /// Gets the body of the webhook event
+//                 let sender_psid = webhook_event.sender.id;
+//                 // console.log('Sender PSID: ' + sender_psid);                
+
+//                 const ExtensionInstaller = require('../../../Facebook_Messenger/installer.js');
+//                 const newExtensionInstaller = new ExtensionInstaller()
+
+//                 newExtensionInstaller.initialization({
+//                     PAGE_ACCESS_TOKEN: process.env.PAGE_ACCESS_TOKEN,
+//                     page_id: '117040291307229'
+//                 })
+
+//                 // Check if the event is a message or postback and
+//                 // pass the event to the appropriate handler function
+//                 if (webhook_event.message) {
+//                     // handleMessage(sender_psid, webhook_event.message);
+//                     callExtensionGetMessage(webhook_event);
+//                 } else if (webhook_event.postback) {
+//                     handlePostback(sender_psid, webhook_event.postback);
+//                 }
+
+
+//             });
+//             // Return a '200 OK' response to all events
+//         }
+//         res.status(200).send("EVENT_RECEIVED");
+//     } else {
+//         // Return a '404 Not Found' if event is not from a page subscription
+
+//         res.sendStatus(404);
+//     }
+// };
+
+async function callExtensionGetMessage(webhook_event) {
+    const Extension = require('../../../Facebook_Messenger/index.js');
+    const extension = new Extension();
+
+    await extension.initialization({
+        PAGE_ACCESS_TOKEN: process.env.PAGE_ACCESS_TOKEN,
+        page_id: '117040291307229'
+    })
+    await extension.execute({
         function_name: "getMessages",
         execute_data: webhook_event
     });
