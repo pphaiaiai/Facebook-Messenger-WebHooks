@@ -5,10 +5,10 @@ const app = express();
 // app.use(bodyParser.json());
 
 app.post('/webhook', (req, res) => {
-    const leadgen = req.body.entry[0].changes[0].value.leadgen_id;
+    const leadgen = req.body.entry[0].changes[0].value;
     // Extract lead data from the webhook event
     // Store lead data in your own system
-    console.log(`Received leadgen ${leadgen}`);
+    console.log('leadgen', leadgen);
     res.status(200).send('EVENT_RECEIVED');
 });
 

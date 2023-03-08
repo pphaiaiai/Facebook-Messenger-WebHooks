@@ -1,5 +1,5 @@
 import express from 'express';
-import extensionController from '../controllers/extensionController';
+import extensionController from '../controllers/extensionController.js';
 
 let router = express.Router();
 

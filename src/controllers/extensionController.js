@@ -23,7 +23,10 @@ let getWebhook = (req, res) => {
 
 // get leads
 let postWebhook = async (req, res) => {
-    const leadgen = req.body.entry[0].changes[0].value;
+    // console.log("leadddddddddddddddddd----------------->>",JSON.stringify(req.body));
+    let leadgen = req.body.entry[0].changes[0].value;
+    // leadgen.leadgen_id = '5932488226796635';
+    // console.log("leadgen", leadgen);
     // Extract lead data from the webhook event
     // Store lead data in your own system
     res.status(200).send('EVENT_RECEIVED');
@@ -45,7 +48,10 @@ let postWebhook = async (req, res) => {
     })
     await newExtension.execute({
         function_name: "getLeadsData",
-        execute_data: leadgen
+        execute_data: {
+            leadgen_id: leadgen.leadgen_id,
+            form_id: leadgen.form_id
+        }
     });
 };
 
